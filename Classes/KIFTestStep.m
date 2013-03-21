@@ -127,15 +127,18 @@ typedef CGPoint KIFDisplacement;
         if (element && titleOrText.length) {
             // TODO This is somewhat kludgy, and I expect it to evolve. For now, it's covering the cases I know I need.
             if ([element respondsToSelector:@selector(currentTitle)]) {
-                if ([[((id)element) currentTitle] rangeOfString:titleOrText].location == NSNotFound) {
+                NSString *text = [((id)element) currentTitle];
+                if (text == nil || [text rangeOfString:titleOrText].location == NSNotFound) {
                     element = nil;
                 }
             } else if ([element respondsToSelector:@selector(text)]) {
-                if (![[((id)element) text] rangeOfString:titleOrText].location == NSNotFound) {
+                NSString *text = [((id)element) text];
+                if (text == nil || [text rangeOfString:titleOrText].location == NSNotFound) {
                     element = nil;
                 }
             } else if ([element respondsToSelector:@selector(title)]) {
-                if (![[((id)element) title] rangeOfString:titleOrText].location == NSNotFound) {
+                NSString *text = [((id)element) title];
+                if (text == nil || [text rangeOfString:titleOrText].location == NSNotFound) {
                     element = nil;
                 }
             } else {
