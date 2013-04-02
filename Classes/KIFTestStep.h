@@ -544,6 +544,17 @@ typedef enum {
 + (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction;
 
 /*!
+ @method stepToSwipeViewWithAccessibilityLabel:inDirection:
+ @abstract A step that swipes a particular view in the view hierarchy in the given direction.
+ @discussion The view will get the view with the specified accessibility label and swipe the screen in the given direction from the view's center.
+ @param label The accessibility label of the view to swipe.
+ @param direction The direction in which to swipe.
+ @param scale The scale factor for the swipe displacement. Less than 1.0 produces smaller swipes than normal.
+ @result A configured test step.
+ */
++ (id)stepToSwipeViewWithAccessibilityLabel:(NSString *)label inDirection:(KIFSwipeDirection)direction scale:(CGFloat)scale;
+
+/*!
  @method stepToScrollViewWithAccessibilityLabel:byFractionOfSizeHorizontal:vertical:
  @abstract A step that scrolls a particular view in the view hierarchy by an amount indicated as a fraction of its size.
  @discussion The view will get the view with the specified accessibility label and scroll it by the indicated fraction of its size, with the scroll centered on the center of the view.
