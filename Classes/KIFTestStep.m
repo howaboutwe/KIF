@@ -822,6 +822,33 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (id)stepToWaitForViewFullyContainedInParentWithAccessibilityLabel:(NSString *)label value:(NSString *)value
+{
+    NSString *description = nil;
+    if (value.length) {
+        description = [NSString stringWithFormat:@"Wait for fully contained view with accessibility label \"%@\" and accessibility value \"%@\"", label, value];
+    } else {
+        description = [NSString stringWithFormat:@"Wait for fully contained view with accessibility label \"%@\"", label];
+    }
+    
+    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+        UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:UIAccessibilityTraitNone error:error];
+        
+        NSString *waitDescription = [NSString stringWithFormat:@"Waiting for presence of accessibility element with label \"%@\"", label];
+        if (value.length) waitDescription = [NSString stringWithFormat:@"%@ and accessibility value \"%@\"", waitDescription, value];
+        
+        KIFTestWaitCondition(element, error, @"%@", waitDescription);
+        
+        UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
+        UIView *superView = view.superview;
+        
+        if (CGRectContainsRect(superView.bounds, view.frame)) {
+            return KIFTestStepResultSuccess;
+        }
+        return KIFTestStepResultWait;
+    }];
+}
+
 #pragma mark Step Collections
 
 + (id)stepToVerifyThatViewWithLabel:(NSString*)label containsNoMoreThan:(NSUInteger)subviewCount subViewsOfClass:(Class)subviewClass {

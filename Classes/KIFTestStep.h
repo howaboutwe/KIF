@@ -576,4 +576,14 @@ typedef enum {
  */
 + (id)stepToWaitForFirstResponderWithAccessibilityLabel:(NSString *)label;
 
+/*!
+ @method stepToWaitForViewFullyContainedInParentWithAccessibilityLabel:value:
+ @abstract A step that waits for a view that is fully contained in its parent.
+ @discussion A step that waits for a view that is fully contained in its parent.
+ @param label The accessibility label of the element to wait for.
+ @param value The accessibility value of the element to tap.
+ @result A configured test step.
+ */
++ (id)stepToWaitForViewFullyContainedInParentWithAccessibilityLabel:(NSString *)label value:(NSString *)value;
+
 @end
