@@ -156,6 +156,39 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (id)stepToWaitForViewWithAccessibilityLabel:(NSString *)label thatDoesNotContainTitleOrText:(NSString*)titleOrText {
+    NSString *description = nil;
+    
+    description = [NSString stringWithFormat:@"Wait for view with accessibility label \"%@\" that does not contain text: \"%@\"", label, titleOrText];
+    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+        UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:nil tappable:NO
+                                                                        traits:UIAccessibilityTraitNone error:error];
+        
+        if (element && titleOrText.length) {
+            if ([element respondsToSelector:@selector(currentTitle)]) {
+                NSString *text = [((id)element) currentTitle];
+                if ([text rangeOfString:titleOrText].location != NSNotFound) {
+                    element = nil;
+                }
+            } else if ([element respondsToSelector:@selector(text)]) {
+                NSString *text = [((id)element) text];
+                if ([text rangeOfString:titleOrText].location != NSNotFound) {
+                    element = nil;
+                }
+            } else if ([element respondsToSelector:@selector(title)]) {
+                NSString *text = [((id)element) title];
+                if ([text rangeOfString:titleOrText].location != NSNotFound) {
+                    element = nil;
+                }
+            }
+        }
+        NSString *waitDescription = [NSString stringWithFormat:@"Waiting for presence of accessibility element with label \"%@\"", label];
+        if (titleOrText.length) waitDescription = [NSString stringWithFormat:@"%@ that does not contain title or text \"%@\"", waitDescription, titleOrText];
+        KIFTestWaitCondition(element, error, @"%@", waitDescription);
+        return KIFTestStepResultSuccess;
+    }];
+}
+
 + (id)stepToWaitForAbsenceOfViewWithAccessibilityLabel:(NSString *)label;
 {
     return [self stepToWaitForAbsenceOfViewWithAccessibilityLabel:label traits:UIAccessibilityTraitNone];
