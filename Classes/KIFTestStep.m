@@ -198,6 +198,24 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (id)stepToVerifyAbsenceOfViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits {
+    NSString *description = nil;
+    if (value.length) {
+        description = [NSString stringWithFormat:@"Verify absence of view with accessibility label \"%@\" and accessibility value \"%@\"", label, value];
+    } else {
+        description = [NSString stringWithFormat:@"Verify absence of view with accessibility label \"%@\"", label];
+    }
+    
+    return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
+        KIFTestWaitCondition(![[UIApplication sharedApplication] isIgnoringInteractionEvents], error, @"Application is ignoring interaction events.");
+        
+        UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:label accessibilityValue:value traits:traits];
+        KIFTestCondition((element == nil), error, @"Found element with label \"%@\".", label);
+        
+        return KIFTestStepResultSuccess;
+    }];
+}
+
 + (id)stepToWaitForTappableViewWithAccessibilityLabel:(NSString *)label;
 {
     return [self stepToWaitForTappableViewWithAccessibilityLabel:label traits:UIAccessibilityTraitNone];
