@@ -201,9 +201,9 @@ typedef CGPoint KIFDisplacement;
 + (id)stepToVerifyAbsenceOfViewWithAccessibilityLabel:(NSString *)label value:(NSString *)value traits:(UIAccessibilityTraits)traits {
     NSString *description = nil;
     if (value.length) {
-        description = [NSString stringWithFormat:@"Verify absense of view with accessibility label \"%@\" and accessibility value \"%@\"", label, value];
+        description = [NSString stringWithFormat:@"Verify absence of view with accessibility label \"%@\" and accessibility value \"%@\"", label, value];
     } else {
-        description = [NSString stringWithFormat:@"Verify absense of view with accessibility label \"%@\"", label];
+        description = [NSString stringWithFormat:@"Verify absence of view with accessibility label \"%@\"", label];
     }
     
     return [self stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
