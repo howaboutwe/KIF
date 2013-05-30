@@ -925,6 +925,43 @@ typedef CGPoint KIFDisplacement;
     }];
 }
 
++ (id)stepToVerifyThatViewWithLabel:(NSString*)label andValue:(NSString*)value hasVisibleSubviewOfClass:(Class)subviewClass {
+    return [KIFTestStep stepWithDescription:[NSString stringWithFormat:@"Check that there is a visible subview of class %@ living under view with label \"%@\" and value \"%@\"", NSStringFromClass(subviewClass), label, value ? value : @""] executionBlock:^(KIFTestStep *step, NSError **error){
+        UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:UIAccessibilityTraitNone error:error];
+        UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
+        
+        NSUInteger c = 0;
+        for (UIView *v in view.subviews) {
+            if ([v isKindOfClass:subviewClass]) {
+                if (!v.hidden) ++c;
+            }
+        }
+        
+        KIFTestCondition(c >= 1, error, @"Expected 1 or more subviews of type %@ in view %@, found %d", NSStringFromClass(subviewClass), label, c);
+        
+        return KIFTestStepResultSuccess;
+    }];
+}
+
++ (id)stepToVerifyThatViewWithLabel:(NSString*)label andValue:(NSString*)value hasNoVisibleSubviewOfClass:(Class)subviewClass {
+    return [KIFTestStep stepWithDescription:[NSString stringWithFormat:@"Check that there is no visible subview of class %@ living under view with label \"%@\" and value \"%@\"", NSStringFromClass(subviewClass), label, value ? value : @""] executionBlock:^(KIFTestStep *step, NSError **error){
+        UIAccessibilityElement *element = [self _accessibilityElementWithLabel:label accessibilityValue:value tappable:NO traits:UIAccessibilityTraitNone error:error];
+        UIView *view = [UIAccessibilityElement viewContainingAccessibilityElement:element];
+        
+        NSUInteger c = 0;
+        for (UIView *v in view.subviews) {
+            if ([v isKindOfClass:subviewClass]) {
+                if (!v.hidden) ++c;
+            }
+        }
+        
+        KIFTestCondition(c == 0, error, @"Expected no subviews of type %@ in view %@, found %d", NSStringFromClass(subviewClass), label, c);
+        
+        return KIFTestStepResultSuccess;
+    }];
+}
+
+
 
 + (NSArray *)stepsToChoosePhotoInAlbum:(NSString *)albumName atRow:(NSInteger)row column:(NSInteger)column;
 {
