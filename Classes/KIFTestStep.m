@@ -417,7 +417,7 @@ typedef CGPoint KIFDisplacement;
         
         // Try all the windows until we get one back that actually has something in it at the given point
         UIView *view = nil;
-        for (UIWindow *window in [[[UIApplication sharedApplication] windows] reverseObjectEnumerator]) {
+        for (UIWindow *window in [[[UIApplication sharedApplication] windowsWithKeyWindow] reverseObjectEnumerator]) {
             CGPoint windowPoint = [window convertPoint:screenPoint fromView:nil];
             view = [window hitTest:windowPoint withEvent:nil];
             
@@ -663,6 +663,14 @@ typedef CGPoint KIFDisplacement;
             // We trim \n and \r because they trigger the return key, so they won't show up in the final product on single-line inputs
             NSString *expected = [expectedResult ? expectedResult : text stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
             NSString *actual = [[view performSelector:@selector(text)] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+            
+            if ([actual isEqualToString:expected]) {
+                return KIFTestStepResultSuccess;
+            }
+            
+            // On iOS 7, the text property isn't always immediately updated, so wait for that to happen and fetch the values again
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
+            actual = [[view performSelector:@selector(text)] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
             KIFTestCondition([actual isEqualToString:expected], error, @"Failed to get text \"%@\" in field; instead, it was \"%@\"", expected, actual);
         }
         
@@ -786,9 +794,9 @@ typedef CGPoint KIFDisplacement;
 {
     return [self stepWithDescription:@"Dismiss the popover" executionBlock:^(KIFTestStep *step, NSError **error) {
         const NSTimeInterval tapDelay = 0.05;
-        NSArray *windows = [[UIApplication sharedApplication] windows];
-        KIFTestCondition(windows.count, error, @"Failed to find any windows in the application");
-        UIView *dimmingView = [[[windows objectAtIndex:0] subviewsWithClassNamePrefix:@"UIDimmingView"] lastObject];
+        UIWindow *window = [[UIApplication sharedApplication] dimmingViewWindow];
+        KIFTestCondition(window, error, @"Failed to find any dimming views in the application");
+        UIView *dimmingView = [[window subviewsWithClassNamePrefix:@"UIDimmingView"] lastObject];
         [dimmingView tapAtPoint:CGPointMake(50.0f, 50.0f)];
         CFRunLoopRunInMode(kCFRunLoopDefaultMode, tapDelay, false);
         return KIFTestStepResultSuccess;
@@ -820,7 +828,7 @@ typedef CGPoint KIFDisplacement;
             KIFTestCondition([indexPath section] < [tableView numberOfSections], error, @"Section %d is not found in '%@' table view", [indexPath section], tableViewLabel);
             KIFTestCondition([indexPath row] < [tableView numberOfRowsInSection:[indexPath section]], error, @"Row %d is not found in section %d of '%@' table view", [indexPath row], [indexPath section], tableViewLabel);
             [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
+            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
             cell = [tableView cellForRowAtIndexPath:indexPath];
         }
         KIFTestCondition(cell, error, @"Table view cell at index path %@ not found", indexPath);
@@ -1211,9 +1219,10 @@ typedef CGPoint KIFDisplacement;
     UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:label accessibilityValue:value traits:traits];
     if (!element) {
         if (error) {
+            element = [[UIApplication sharedApplication] accessibilityElementWithLabel:label accessibilityValue:nil traits:traits];
             // For purposes of a better error message, see if we can find the view, just not a view with the specified value.
-            if (value && [[UIApplication sharedApplication] accessibilityElementWithLabel:label accessibilityValue:nil traits:traits]) {
-                *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Found an accessibility element with the label \"%@\", but not with the value \"%@\"", label, value], NSLocalizedDescriptionKey, nil]] autorelease];
+            if (value && element) {
+                *error = [[[NSError alloc] initWithDomain:@"KIFTest" code:KIFTestStepResultFailure userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"Found an accessibility element with the label \"%@\", but with the value \"%@\", not \"%@\"", label, element.accessibilityValue, value], NSLocalizedDescriptionKey, nil]] autorelease];
                 
             // Check the traits, too.
             } else if (traits != UIAccessibilityTraitNone && [[UIApplication sharedApplication] accessibilityElementWithLabel:label accessibilityValue:nil traits:UIAccessibilityTraitNone]) {
